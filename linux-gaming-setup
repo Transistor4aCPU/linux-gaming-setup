@@ -1,29 +1,34 @@
-#!/bin/bash
+!/bin/bash
 get_gpuvendor () {
 if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
-	then 
-		gpudriver+=(amdgpu)
-		gpuvendor+=(amd)
-	elif [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
-		then
-			gpudriver+=(radeon)
-			gpuvendor+=(amd)
-	elif [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
-		then
-			gpudriver+=(i915)
-			gpuvendor+=(intel)
-	elif [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
-		then
-			gpudriver+=(nouveau)
-			gpuvendor+=(nvidia)
-        elif [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
-                then    
-                        gpudriver+=(nvidia)
-                        gpuvendor+=(nvidia)
-        elif [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
-                then    
-                        gpudriver+=(nvidia_drm)
-                        gpuvendor+=(nvidia)
+        then
+                gpudriver[0]=amdgpu
+                gpuvendor[0]=amd
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
+        then
+                gpudriver[1]=radeon
+                gpuvendor[0]=amd
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
+        then
+                gpudriver[2]=i915
+                gpuvendor[1]=intel
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
+        then
+                gpudriver[3]=nouveau
+                gpuvendor[2]=nvidia
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
+        then
+                gpudriver[4]=nvidia
+                gpuvendor[2]=nvidia
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
+        then
+                gpudriver[5]=nvidia_drm
+                gpuvendor[2]=nvidia
 fi
 }
 get_gpuvendor
