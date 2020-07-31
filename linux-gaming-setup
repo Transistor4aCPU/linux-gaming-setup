@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 get_gpuvendor () {
 if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
         then
