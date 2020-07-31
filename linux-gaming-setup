@@ -31,7 +31,15 @@ if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
                 gpuvendor[2]=nvidia
 fi
 }
-get_gpuvendor
-echo ${gpudriver[@]}
-echo ${gpuvendor[@]}
+#get_gpuvendor
+#echo ${gpudriver[@]}
+#echo ${gpuvendor[@]}
+proton_updater () {
+if [ ! -f /usr/bin/proton-ge-custom-updater ]
+        then
+                pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-ge-custom-updater -P /usr/bin
+                pkexec chmod a+x /usr/bin/proton-ge-custom-updater
+fi
+proton-ge-custom-updater
+}
 exit
