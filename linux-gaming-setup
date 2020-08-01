@@ -1,0 +1,93 @@
+#!/bin/bash
+get_gpuvendor () {
+if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
+        then
+                gpudriver[0]=amdgpu
+                gpuvendor[0]=amd
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
+        then
+                gpudriver[1]=radeon
+                gpuvendor[0]=amd
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
+        then
+                gpudriver[2]=i915
+                gpuvendor[1]=intel
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
+        then
+                gpudriver[3]=nouveau
+                gpuvendor[2]=nvidia
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
+        then
+                gpudriver[4]=nvidia
+                gpuvendor[2]=nvidia
+fi
+if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
+        then
+                gpudriver[5]=nvidia_drm
+                gpuvendor[2]=nvidia
+fi
+}
+proton_updater () {
+if [ ! -f /usr/bin/proton-ge-custom-updater ]
+	then
+		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-ge-custom-updater -P /usr/bin
+		pkexec chmod a+x /usr/bin/proton-ge-custom-updater
+fi
+proton-ge-custom-updater
+}
+mesa_glthreader () {
+pkexec echo "mesa_glthread=true" >> /etc/enviroment
+}
+enable_aco_compiler () {
+pkexec echo "RADV_PERFTEST=aco" >> /etc/enviroment
+}
+enable_esync () {
+if [ $(ulimit -Hn) <= 500000 ]
+	then
+		theuser=$(whoami)
+		pkexec echo "DefaultLimitNOFILE=524288" >> /etc/systemd/system.conf
+		pkexec echo "DefaultLimitNOFILE=524288" >> /etc/systemd/user.conf 
+		pkexec echo "${theuser} hard nofile 524288" >> /etc/security/limits.conf
+fi
+}
+install_gamemode () {
+if [ $distro == "debian" ]
+	then pkexec apt -y install meson libsystemd-dev pkg-config ninja-build git libdbus-1-dev libinih-dev dbus-user-session
+	elif [ $distro == "arch"
+		then pkexec pacman -Sy --noconfirm meson systemd git dbus
+	else echo "Dependency error"
+fi
+git clone https://github.com/FeralInteractive/gamemode.git
+cd gamemode
+git checkout 1.5.1
+./bootstrap.sh
+}
+install_driver () {
+if [ $distro == "arch" ]
+	then
+		pkexec sed -i s/"#[multilib]"/"[multilib]"/g /etc/pacman.conf
+		pkexec sed -i s/"#Include = /etc/pacman.d/mirrorlist/"/"Include = /etc/pacman.d/mirrorlist"/g /etc/pacman.conf
+		pkexec pacman -S --noconfirm lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader -y
+fi
+}
+if [ -d "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam" ] || [ -d "$HOME/.var/app/com.valvesoftware.Steam/.steam" ] || [ -d "$HOME/.local/share/Steam" ] || [ -d "$HOME/.steam" ] ]
+	then
+		steam=installed
+fi
+if [ -d "/usr/bin/pacman" ]
+	then distro=arch
+	elif [ -d "/usr/bin/apt" ]
+		then distro=debian
+	else zenity --error --text="Unknown distro. This tool only works with debian and arch based distros!" && exit
+fi
+if [ $steam == "installed" ]
+	then
+		uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" FALSE "Install Newest Proton GE custom" FALSE "Install Mangohud" FALSE "Enable aco compiler globaly" FALSE "Enable Mesa GLThread globaly" )
+fi
+if 
+echo "$uselection"
+exit
