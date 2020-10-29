@@ -31,24 +31,33 @@
 #								gpuvendor[2]=nvidia
 #fi
 #}
-if [ -d "/usr/bin/pacman" ]
-	then distro=arch
-	elif [ -d "/usr/bin/apt" ]
-		then distro=debian
-	else zenity --error --text="Unknown distro. This tool only works with debian and arch based distros!" && exit
+if [ -f /usr/bin/pacman ]
+	then distro=1
+elif [ -f /usr/bin/apt ]
+		then distro=2
+#	else zenity --error --text="Unknown distro. This tool only works with debian and arch based distros!" && exit
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
 	then
-		AMDENV='FALSE "Enable aco compiler globaly" FALSE "Enable Mesa GLThread globaly"'
-		if [ $distro == "arch" ]
+		AMDENV1=FALSE
+		AMDENV2="Enable aco compiler globaly"
+		AMDENVM1=FALSE
+		AMDENVM2="Enable Mesa GLThread globaly"
+		if [ $distro == 1 ]
 			then
-				AMDDRIVER='FALSE "Install AMD DRIVER"'
+				AMDDRIVER1=FALSE
+				AMDDRIVER2="Install AMD DRIVER"
 			else
-				AMDDRIVER=''
+				AMDDRIVER1=
+				AMDDRIVER2=
 		fi
 	else
-		AMDENV=''
-		AMDDRIVER=''
+		AMDENV1=
+		AMDENV2=
+		AMDENVM1=
+		AMDENVM2=
+		AMDDRIVER1=
+		AMDDRIVER2=
 fi
 proton-ge-custom-updater () {
 if [ ! -f /usr/bin/proton-ge-custom-updater ]
@@ -84,9 +93,9 @@ if [ $(ulimit -Hn) <= 500000 ]
 fi
 }
 install_gamemode () {
-if [ $distro == "debian" ]
+if [ $distro == 2 ]
 	then pkexec apt -y install meson libsystemd-dev pkg-config ninja-build git libdbus-1-dev libinih-dev dbus-user-session
-	elif [ $distro == "arch"
+	elif [ $distro == 1 ]
 		then pkexec pacman -Sy --noconfirm meson systemd git dbus
 	else echo "Dependency error"
 fi
@@ -96,26 +105,31 @@ git checkout 1.5.1
 ./bootstrap.sh
 }
 install_amd_driver () {
-if [ $distro == "arch" ]
+if [ $distro == 1 ]
 	then
 		pkexec sed -i s/"#[multilib]"/"[multilib]"/g /etc/pacman.conf
 		pkexec sed -i s/"#Include = /etc/pacman.d/mirrorlist/"/"Include = /etc/pacman.d/mirrorlist"/g /etc/pacman.conf
 		pkexec pacman -S --noconfirm lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader -y
 fi
 }
-if [ -d "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam" ] || [ -d "$HOME/.var/app/com.valvesoftware.Steam/.steam" ] || [ -d "$HOME/.local/share/Steam" ] || [ -d "$HOME/.steam" ] ]
+if [ -d $HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam ] || [ -d $HOME/.var/app/com.valvesoftware.Steam/.steam ] || [ -d $HOME/.local/share/Steam ] || [ -d $HOME/.steam ]
 	then
-		steam=installed
-fi
-if [ $steam == "installed" ]
-	then
-		PROTON='FALSE "Install Newest Proton GE custom" FALSE "Install Newest Proton tkg"'
+		steam=1
 	else
-		PROTON=''
+		steam=0
 fi
-if [ $steam == "installed" ]
+if [ $steam == 1 ]
 	then
-		uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" $PROTON FALSE "Install gamemode" FALSE "Enable Esync" $AMDENV $AMDDRIVER )
+		PROTONGE1=FALSE
+		PROTONGE2="Install Newest Proton GE custom"
+		PROTONTKG1=FALSE
+		PROTONTKG2="Install Newest Proton tkg"
+	else
+		PROTONGE1=
+		PROTONGE2=
+		PROTONTKG1=
+		PROTONTKG2=
 fi
+uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" FALSE "Install gamemode" FALSE "Enable Esync" $AMDENVM1 "$AMDENVM2" $AMDENV1 "$AMDENV2" $PROTONGE1 "$PROTONGE2" $PROTONTKG1 "$PROTONTKG2" $AMDDRIVER1 "$AMDDRIVER2")
 echo "$uselection"
 exit
