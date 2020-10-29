@@ -1,52 +1,53 @@
 #!/bin/bash
 get_gpuvendor () {
 if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
-        then
-                gpudriver[0]=amdgpu
-                gpuvendor[0]=amd
+				then
+								gpudriver[0]=amdgpu
+								gpuvendor[0]=amd
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
-        then
-                gpudriver[1]=radeon
-                gpuvendor[0]=amd
+				then
+								gpudriver[1]=radeon
+								gpuvendor[0]=amd
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
-        then
-                gpudriver[2]=i915
-                gpuvendor[1]=intel
+				then
+								gpudriver[2]=i915
+								gpuvendor[1]=intel
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
-        then
-                gpudriver[3]=nouveau
-                gpuvendor[2]=nvidia
+				then
+								gpudriver[3]=nouveau
+								gpuvendor[2]=nvidia
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
-        then
-                gpudriver[4]=nvidia
-                gpuvendor[2]=nvidia
+				then
+								gpudriver[4]=nvidia
+								gpuvendor[2]=nvidia
 fi
 if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
-        then
-                gpudriver[5]=nvidia_drm
-                gpuvendor[2]=nvidia
+				then
+								gpudriver[5]=nvidia_drm
+								gpuvendor[2]=nvidia
 fi
 }
 proton-ge-custom-updater () {
 if [ ! -f /usr/bin/proton-ge-custom-updater ]
 	then
 		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-ge-custom-updater.sh -P /usr/bin
-    pkexec mv /usr/bin/proton-ge-custom-updater.sh /usr/bin/proton-ge-custom-updater
+		pkexec mv /usr/bin/proton-ge-custom-updater.sh /usr/bin/proton-ge-custom-updater
 		pkexec chmod a+x /usr/bin/proton-ge-custom-updater
 fi
 proton-ge-custom-updater
 }
 proton-tkg-updater () {
-  f [ ! -f /usr/bin/proton-tkg-updater ]
-  	then
-  		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-tkg-updater.sh -P /usr/bin
-      pkexec mv /usr/bin/proton-tkg-updater.sh /usr/bin/proton-tkg-updater
-  		pkexec chmod a+x /usr/bin/proton-tkg-updater
-  fi
+if [ ! -f /usr/bin/proton-tkg-updater ]
+	then
+		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-tkg-updater.sh -P /usr/bin
+		pkexec mv /usr/bin/proton-tkg-updater.sh /usr/bin/proton-tkg-updater
+		pkexec chmod a+x /usr/bin/proton-tkg-updater
+fi
+proton-tkg-updater
 }
 mesa_glthreader () {
 pkexec echo "mesa_glthread=true" >> /etc/enviroment
