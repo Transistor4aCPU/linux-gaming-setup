@@ -31,13 +31,22 @@ if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
                 gpuvendor[2]=nvidia
 fi
 }
-proton_updater () {
+proton-ge-custom-updater () {
 if [ ! -f /usr/bin/proton-ge-custom-updater ]
 	then
-		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-ge-custom-updater -P /usr/bin
+		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-ge-custom-updater.sh -P /usr/bin
+    pkexec mv /usr/bin/proton-ge-custom-updater.sh /usr/bin/proton-ge-custom-updater
 		pkexec chmod a+x /usr/bin/proton-ge-custom-updater
 fi
 proton-ge-custom-updater
+}
+proton-tkg-updater () {
+  f [ ! -f /usr/bin/proton-tkg-updater ]
+  	then
+  		pkexec wget https://raw.githubusercontent.com/patrickm32/proton-ge-custom-updater/master/proton-tkg-updater.sh -P /usr/bin
+      pkexec mv /usr/bin/proton-tkg-updater.sh /usr/bin/proton-tkg-updater
+  		pkexec chmod a+x /usr/bin/proton-tkg-updater
+  fi
 }
 mesa_glthreader () {
 pkexec echo "mesa_glthread=true" >> /etc/enviroment
@@ -50,7 +59,7 @@ if [ $(ulimit -Hn) <= 500000 ]
 	then
 		theuser=$(whoami)
 		pkexec echo "DefaultLimitNOFILE=524288" >> /etc/systemd/system.conf
-		pkexec echo "DefaultLimitNOFILE=524288" >> /etc/systemd/user.conf 
+		pkexec echo "DefaultLimitNOFILE=524288" >> /etc/systemd/user.conf
 		pkexec echo "${theuser} hard nofile 524288" >> /etc/security/limits.conf
 fi
 }
@@ -88,6 +97,6 @@ if [ $steam == "installed" ]
 	then
 		uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" FALSE "Install Newest Proton GE custom" FALSE "Install Mangohud" FALSE "Enable aco compiler globaly" FALSE "Enable Mesa GLThread globaly" )
 fi
-if 
+if
 echo "$uselection"
 exit
