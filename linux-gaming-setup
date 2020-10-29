@@ -1,36 +1,55 @@
 #!/bin/bash
-get_gpuvendor () {
+#get_gpuvendor () {
+#if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
+#				then
+#								gpudriver[0]=amdgpu
+#								gpuvendor[0]=amd
+#fi
+#if [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
+#				then
+#								gpudriver[1]=radeon
+#								gpuvendor[0]=amd
+#fi
+#if [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
+#				then
+#								gpudriver[2]=i915
+#								gpuvendor[1]=intel
+#fi
+#if [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
+#				then
+#								gpudriver[3]=nouveau
+#								gpuvendor[2]=nvidia
+#fi
+#if [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
+#				then
+#								gpudriver[4]=nvidia
+#								gpuvendor[2]=nvidia
+#fi
+#if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
+#				then
+#								gpudriver[5]=nvidia_drm
+#								gpuvendor[2]=nvidia
+#fi
+#}
+if [ -d "/usr/bin/pacman" ]
+	then distro=arch
+	elif [ -d "/usr/bin/apt" ]
+		then distro=debian
+	else zenity --error --text="Unknown distro. This tool only works with debian and arch based distros!" && exit
+fi
 if [ $(lspci -k | grep -c "Kernel driver in use: amdgpu") != "0" ]
-				then
-								gpudriver[0]=amdgpu
-								gpuvendor[0]=amd
+	then
+		AMDENV='FALSE "Enable aco compiler globaly" FALSE "Enable Mesa GLThread globaly"'
+		if [ $distro == "arch" ]
+			then
+				AMDDRIVER='FALSE "Install AMD DRIVER"'
+			else
+				AMDDRIVER=''
+		fi
+	else
+		AMDENV=''
+		AMDDRIVER=''
 fi
-if [ $(lspci -k | grep -c "Kernel driver in use: radeon") != "0" ]
-				then
-								gpudriver[1]=radeon
-								gpuvendor[0]=amd
-fi
-if [ $(lspci -k | grep -c "Kernel driver in use: i915") != "0" ]
-				then
-								gpudriver[2]=i915
-								gpuvendor[1]=intel
-fi
-if [ $(lspci -k | grep -c "Kernel driver in use: nouveau") != "0" ]
-				then
-								gpudriver[3]=nouveau
-								gpuvendor[2]=nvidia
-fi
-if [ $(lspci -k | grep -c "Kernel driver in use: nvidia") != "0" ]
-				then
-								gpudriver[4]=nvidia
-								gpuvendor[2]=nvidia
-fi
-if [ $(lspci -k | grep -c "Kernel driver in use: nvidia_drm") != "0" ]
-				then
-								gpudriver[5]=nvidia_drm
-								gpuvendor[2]=nvidia
-fi
-}
 proton-ge-custom-updater () {
 if [ ! -f /usr/bin/proton-ge-custom-updater ]
 	then
@@ -50,10 +69,10 @@ fi
 proton-tkg-updater
 }
 mesa_glthreader () {
-pkexec echo "mesa_glthread=true" >> /etc/enviroment
+pkexec echo "mesa_glthread=true" >> /etc/environment
 }
 enable_aco_compiler () {
-pkexec echo "RADV_PERFTEST=aco" >> /etc/enviroment
+pkexec echo "RADV_PERFTEST=aco" >> /etc/environment
 }
 enable_esync () {
 if [ $(ulimit -Hn) <= 500000 ]
@@ -76,7 +95,7 @@ cd gamemode
 git checkout 1.5.1
 ./bootstrap.sh
 }
-install_driver () {
+install_amd_driver () {
 if [ $distro == "arch" ]
 	then
 		pkexec sed -i s/"#[multilib]"/"[multilib]"/g /etc/pacman.conf
@@ -88,16 +107,15 @@ if [ -d "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam" ] || [ -d "$
 	then
 		steam=installed
 fi
-if [ -d "/usr/bin/pacman" ]
-	then distro=arch
-	elif [ -d "/usr/bin/apt" ]
-		then distro=debian
-	else zenity --error --text="Unknown distro. This tool only works with debian and arch based distros!" && exit
+if [ $steam == "installed" ]
+	then
+		PROTON='FALSE "Install Newest Proton GE custom" FALSE "Install Newest Proton tkg"'
+	else
+		PROTON=''
 fi
 if [ $steam == "installed" ]
 	then
-		uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" FALSE "Install Newest Proton GE custom" FALSE "Install Mangohud" FALSE "Enable aco compiler globaly" FALSE "Enable Mesa GLThread globaly" )
+		uselection=$(zenity --list --checklist --title="Linux gaming tools menu" --column="Tool" --column="test" $PROTON FALSE "Install gamemode" FALSE "Enable Esync" $AMDENV $AMDDRIVER )
 fi
-if
 echo "$uselection"
 exit
